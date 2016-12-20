@@ -1,0 +1,12 @@
+---
+REGION: us-east-1
+EC2_INSTANCE_TYPE: t2.micro
+EC2_KEY_NAME: "uninstall-testing"
+EC2_SG_NAME: "uninstall-sg"
+AMI_ID: ami-4bd01426
+
+region: "{{ region }}"
+ec2_instance_type: "{{ EC2_INSTANCE_TYPE }}"
+ec2_key_pair: "{{ EC2_KEY_PAIR }}"
+ec2_sg_name: "{{ EC2_SG_NAME }}"
+ami_id: "{{ AMI_ID }}"

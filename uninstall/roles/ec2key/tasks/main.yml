@@ -1,0 +1,13 @@
+--- ### Create ec2 key pair using current user's pub key
+- name: Find current user
+  command: whoami
+  register: current_user
+
+- set_fact:
+    ssh_key_location: "/home/{{ current_user.stdout }}/.ssh/id_rsa.pub" 
+
+- name: Create new ec2 key pair
+  ec2_key:
+    region: us-east-1
+    name: uninstall-testing
+    key_material: "{{ lookup('file', ssh_key_location) }}"

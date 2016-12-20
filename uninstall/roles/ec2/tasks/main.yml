@@ -1,0 +1,50 @@
+--- ### Finding a random VPC ID that belongs to region
+- name: find proper vpc id
+  ec2_vpc_subnet_facts:
+    region: "{{ region }}"
+    filters:
+      availabilityZone: us-east-1c
+  register: subnets
+- set_fact:
+    VPC_ID: "{{ subnets['subnets'][0]['vpc_id'] }}"
+    SUBNET_ID: "{{ subnets['subnets'][0]['id'] }}"
+
+- name: provisioning new instances
+  ec2:
+    region: "{{ region }} "
+    group: "{{ ec2_sg_name }}"
+    keypair: "{{ ec2_key_pair }}"
+    instance_type: "{{ ec2_instance_type }}"
+    image: "{{ ami_id }}"
+    vpc_subnet_id: "{{ SUBNET_ID }}"
+    assign_public_ip: yes
+    wait: True
+    user_data: |
+              #!/bin/sh
+              sudo apt-get install python2.7 -y
+              sudo apt-get install nginx -y
+    instance_tags:
+      Name: uninstall-testing
+    volumes:
+      - device_name: /dev/sda1
+        volume_type: standard
+        volume_size: 8
+        delete_on_termination: yes
+    count: 2
+  register: ec2
+ 
+- set_fact:
+    instance_id_list: "{{ instance_id_list | default([]) + [ item.id ] }}"
+  with_items: "{{ ec2.instances }}"
+
+- name: Add new instnces to host file
+  lineinfile:
+    dest: "./inventory/hosts"
+    regexp: "{{ item.public_ip }}"
+    insertafter: "[webserver]"
+    line: "{{ item.public_ip }}"
+  with_items: "{{ ec2.instances }}"
+
+- name: Wait for SSH to come up
+  wait_for: host={{ item.public_ip }} port=22 delay=60 timeout=320 state=started
+  with_items: '{{ ec2.instances }}'

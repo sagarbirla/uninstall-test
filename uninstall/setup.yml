@@ -1,0 +1,10 @@
+--- #MAIN FILE TO CALL ROLES
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  roles:
+    - sg
+    - ec2key
+    - ec2
+    - elb
+    - rds

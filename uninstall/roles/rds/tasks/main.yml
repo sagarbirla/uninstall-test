@@ -1,0 +1,26 @@
+---
+- name: find proper subnet id
+  ec2_vpc_subnet_facts:
+    region: us-east-1
+    filters:
+      availabilityZone: us-east-1c
+  register: subnets
+- set_fact:
+    SUBNET_ID: "{{ subnets['subnets'][0]['id'] }}"
+
+- name: provision rds instance
+  rds:
+    commnad: create
+    region: us-east-1
+    subnet: "{{ SUBNET_ID }}"
+    security_groups: uninstall-sg
+    instance_type: db.t2.micro
+    db_engine: MySQL
+    size: 10
+    db_name: uninstall-test
+    instance_name: uninstall-test
+    username: root
+    password: uninstall
+    backup_retention: 0
+    wait: yes
+    publicly_accessible: yes

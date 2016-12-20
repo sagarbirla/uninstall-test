@@ -1,0 +1,22 @@
+--- ### Finding a random VPC ID that belongs to region
+- name: find proper vpc id
+  ec2_vpc_subnet_facts:
+    region: "{{ region }}"
+    filters:
+      availabilityZone: us-east-1c
+  register: subnets
+- set_fact:
+    VPC_ID: "{{ subnets['subnets'][0]['vpc_id'] }}"
+
+### CREATING a SECURITY GROUP TO BE USED FOR EC@
+- name: Create a security group
+  ec2_group:
+    name: "{{ item.name }}"
+    description: "{{ item.description }}"
+    region: "{{ region }}"
+    vpc_id: "{{ VPC_ID }}"
+    rules: "{{ item.rules }"
+    state: present
+  with_items: "{{ sg_rules }}"
+  register: sg
+    
